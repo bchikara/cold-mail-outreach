@@ -46,7 +46,7 @@ export default function DashboardPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-white mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <StatCard title="Total Contacts" value={contacts.length} icon={<Users size={28} className="text-blue-400"/>} />
         <StatCard title="Emails Sent (All Time)" value={history.length} icon={<Send size={28} className="text-green-400"/>} />
         <StatCard title="Scheduled" value={scheduledEmails.length} icon={<Clock size={28} className="text-yellow-400"/>} />
@@ -78,7 +78,7 @@ export default function DashboardPage() {
              }} />
         </div>
       </div>
-      <div className="bg-gray-800 p-6 rounded-lg">
+      <div className="bg-gray-800 p-6 rounded-lg mt-8">
           <h2 className="text-xl font-semibold text-white mb-4">Upcoming Scheduled Emails</h2>
           <div className="space-y-3 max-h-72 overflow-y-auto">
             {scheduledEmails.length > 0 ? (
@@ -94,7 +94,7 @@ export default function DashboardPage() {
               <p className="text-gray-500 text-center pt-10">No emails scheduled.</p>
             )}
           </div>
-        </div>
+      </div>
     </div>
   );
 }
