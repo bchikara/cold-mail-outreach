@@ -1,5 +1,5 @@
 import { collection, query, where, getDocs, writeBatch, doc, collectionGroup } from 'firebase/firestore';
-import { db, appId } from '../../lib/firebaseConfig';
+import { db, appId } from '../../lib/firebaseAdminConfig';
 import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
