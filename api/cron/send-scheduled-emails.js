@@ -25,7 +25,10 @@ export default async function handler(req, res) {
     // Real query
     const scheduledEmailsQuery = db
       .collectionGroup('scheduledEmails')
-      .where('sendAt', '<=', nowTs);
+      .where('sendAt', '<=', nowTs)
+      .orderBy('sendAt', 'asc') 
+      .orderBy(admin.firestore.FieldPath.documentId(), 'desc');
+
 
     console.log('[CRON] executing scheduledEmailsQuery...');
     const querySnapshot = await scheduledEmailsQuery.get();
