@@ -1,5 +1,5 @@
 import { collection, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
-import { db, appId } from '../../lib/firebaseAdminConfig';
+import { db, appId } from './_lib/firebaseAdminConfig';
 import cors from 'cors';
 
 const corsHandler = cors({ origin: true });
