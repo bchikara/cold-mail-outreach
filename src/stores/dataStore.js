@@ -8,62 +8,62 @@ export const useDataStore = create((set, get) => ({
   history: [],
   profile: null,
   resumeFile: null,
+  scheduledEmails: [], 
   unsubscribeContacts: null,
   unsubscribeHistory: null,
   unsubscribeProfile: null,
+  unsubscribeScheduled: null, 
 
   fetchData: (userId) => {
     get().unsubscribeAll();
 
     if (!userId) {
-      set({ contacts: [], history: [], profile: null, resumeFile: null });
+      set({ contacts: [], history: [], profile: null, resumeFile: null, scheduledEmails: [] });
       return;
     }
 
     const contactsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/contacts`), orderBy("createdAt", "desc"));
     const unsubContacts = onSnapshot(contactsQuery, (snapshot) => {
-      const contactsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      set({ contacts: contactsData });
+      set({ contacts: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
     });
 
     const historyQuery = query(collection(db, `artifacts/${appId}/users/${userId}/history`), orderBy("createdAt", "desc"));
     const unsubHistory = onSnapshot(historyQuery, (snapshot) => {
-      const historyData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      set({ history: historyData });
+      set({ history: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
     });
 
     const profileRef = doc(db, `artifacts/${appId}/users/${userId}/profile/main`);
     const unsubProfile = onSnapshot(profileRef, (doc) => {
-      if (doc.exists()) {
-        set({ profile: doc.data() });
-      } else {
-        set({ profile: { name: '', profession: '', skills: '', website: '' } }); 
-      }
+      set({ profile: doc.exists() ? doc.data() : { name: '', profession: '', skills: '', website: '' } });
+    });
+    
+    const scheduledQuery = query(collection(db, `artifacts/${appId}/users/${userId}/scheduledEmails`), orderBy("sendAt", "asc"));
+    const unsubScheduled = onSnapshot(scheduledQuery, (snapshot) => {
+        set({ scheduledEmails: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
     });
 
     const resumeRef = ref(storage, `resumes/${userId}/resume.pdf`);
     getMetadata(resumeRef)
       .then(metadata => getDownloadURL(resumeRef).then(url => set({ resumeFile: { name: metadata.name, url } })))
       .catch(err => { 
-          if (err.code === 'storage/object-not-found') {
-              set({ resumeFile: null });
-          } else {
-              console.error("Error fetching resume metadata:", err);
-          }
+          if (err.code === 'storage/object-not-found') set({ resumeFile: null });
+          else console.error("Error fetching resume metadata:", err);
       });
 
     set({ 
         unsubscribeContacts: unsubContacts, 
         unsubscribeHistory: unsubHistory, 
-        unsubscribeProfile: unsubProfile 
+        unsubscribeProfile: unsubProfile,
+        unsubscribeScheduled: unsubScheduled
     });
   },
 
   unsubscribeAll: () => {
-    const { unsubscribeContacts, unsubscribeHistory, unsubscribeProfile } = get();
+    const { unsubscribeContacts, unsubscribeHistory, unsubscribeProfile, unsubscribeScheduled } = get();
     if (unsubscribeContacts) unsubscribeContacts();
     if (unsubscribeHistory) unsubscribeHistory();
     if (unsubscribeProfile) unsubscribeProfile();
-    set({ unsubscribeContacts: null, unsubscribeHistory: null, unsubscribeProfile: null });
+    if (unsubscribeScheduled) unsubscribeScheduled();
+    set({ unsubscribeContacts: null, unsubscribeHistory: null, unsubscribeProfile: null, unsubscribeScheduled: null });
   },
 }));

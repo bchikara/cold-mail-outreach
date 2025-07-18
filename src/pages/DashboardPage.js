@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useDataStore } from '../stores/dataStore';
 import { useTemplateStore } from '../stores/templateStore';
-import { Users, Send, Mail } from 'lucide-react';
+import { Users, Send, Mail, Clock } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { StatCard } from '../components/shared/StatCard';
@@ -9,7 +9,7 @@ import { StatCard } from '../components/shared/StatCard';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function DashboardPage() {
-  const { contacts, history } = useDataStore();
+  const { contacts, history, scheduledEmails } = useDataStore();
   const { emailTemplates } = useTemplateStore();
 
   const chartData = useMemo(() => {
@@ -49,6 +49,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard title="Total Contacts" value={contacts.length} icon={<Users size={28} className="text-blue-400"/>} />
         <StatCard title="Emails Sent (All Time)" value={history.length} icon={<Send size={28} className="text-green-400"/>} />
+        <StatCard title="Scheduled" value={scheduledEmails.length} icon={<Clock size={28} className="text-yellow-400"/>} />
         <StatCard title="Templates Available" value={emailTemplates.length} icon={<Mail size={28} className="text-purple-400"/>} />
       </div>
       <div className="bg-gray-800 p-6 rounded-lg">
@@ -77,6 +78,23 @@ export default function DashboardPage() {
              }} />
         </div>
       </div>
+      <div className="bg-gray-800 p-6 rounded-lg">
+          <h2 className="text-xl font-semibold text-white mb-4">Upcoming Scheduled Emails</h2>
+          <div className="space-y-3 max-h-72 overflow-y-auto">
+            {scheduledEmails.length > 0 ? (
+              scheduledEmails.slice(0,10).map(email => (
+                <div key={email.id} className="p-3 bg-gray-700/50 rounded-md">
+                  <p className="font-semibold text-white">{email.to}</p>
+                  <p className="text-sm text-gray-400">
+                    Scheduled for: {new Date(email.sendAt.seconds * 1000).toLocaleString()}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center pt-10">No emails scheduled.</p>
+            )}
+          </div>
+        </div>
     </div>
   );
 }

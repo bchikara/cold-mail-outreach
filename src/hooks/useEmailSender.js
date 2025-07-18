@@ -14,7 +14,9 @@ export function useEmailSender() {
     isSending,
     setSending, 
     notifySuccess, 
-    notifyError 
+    notifyError,
+    dismissToast,
+    notifyLoading 
   } = useAppStore();
   const { userId } = useAuthStore();
   const { contacts: allContacts, profile, resumeFile } = useDataStore();
@@ -59,13 +61,43 @@ export function useEmailSender() {
     openModal('selectTemplate', {
       recipients,
       defaultTemplate: options.defaultTemplate,
-      onSelect: (template) => {
-        sendEmails(recipients, template, options.isFollowUp);
+      onSelect: (template) => { 
+        processEmails(recipients, template, options.isFollowUp);
+      },
+      onSchedule: (template, sendAt) => { 
+        scheduleEmails(recipients, template, sendAt, options.isFollowUp);
       }
     });
   };
 
-  const sendEmails = async (contactsToSend, template, isFollowUp = false) => {
+  const scheduleEmails = async (contactsToSchedule, template, sendAt, isFollowUp = false) => {
+    setSending(true);
+    closeModal();
+    const toastId = notifyLoading("Scheduling emails...");
+
+    const emails = contactsToSchedule.map(contact => {
+        const { subject, body } = getPersonalizedEmail(template, contact, profile);
+        return { to: contact.email, subject, html: body, fromName: profile.name, sendAt };
+    });
+
+    try {
+        await fetch('/api/schedule-emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emails, userId }),
+        });
+        dismissToast(toastId);
+        notifySuccess(`${emails.length} emails have been scheduled.`);
+    } catch (error) {
+        dismissToast(toastId);
+        notifyError("Failed to schedule emails.");
+        console.error("Scheduling error:", error);
+    } finally {
+        setSending(false);
+    }
+  };
+
+  const processEmails = async (contactsToSend, template, isFollowUp = false) => {
     if (contactsToSend.length === 0) return;
     setSending(true);
 
