@@ -49,7 +49,7 @@ export default function MainLayout() {
       <aside className={`bg-gray-800/50 border-r border-gray-700 flex-col hidden md:flex relative transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
         <div className={`p-6 text-2xl font-bold text-white flex items-center gap-2 transition-all duration-300 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
           <img  src={Logo} alt="cold mail outreach"/>
-          <span className={isSidebarCollapsed ? 'hidden' : 'hidden'}>Outreach Pro</span>
+          <span className={isSidebarCollapsed ? 'hidden' : 'hidden'}>Cold Mail Outreach</span>
         </div>
         <nav className="flex-1 px-4 space-y-2">
           {navLinks.map((link) => (

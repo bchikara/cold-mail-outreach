@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo.png" alt="Outreach Pro Logo" width="120">
+  <img src="public/logo.png" alt="Cold Mail Outreach Logo" width="120">
 </p>
 
 <h1 align="center">Cold Mail Outreach</h1>
@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+<a href="https://cold-mail-outreach.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/Live%20Demo-Vercel-58a6ff?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
+  </a>
+  <br>
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Badge">
   <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase Badge">
   <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel Badge">
@@ -17,7 +21,7 @@
 
 ---
 
-**Outreach Pro** is a full-stack web application designed to streamline the job application process. It allows you to manage contacts, use dynamic email templates, send personalized emails with attachments, and track your outreach history, all from a beautiful, Gemini-inspired dark-mode interface.
+**Cold Mail Outreach** is a full-stack web application designed to streamline the job application process. It allows you to manage contacts, use dynamic email templates, send personalized emails with attachments, and track your outreach history, all from a beautiful, Gemini-inspired dark-mode interface.
 
 ## ✨ Features
 
