@@ -16,12 +16,20 @@ export default async function handler(req, res) {
 
   try {
     const nowTs = admin.firestore.Timestamp.now();
+    console.log('[CRON] nowTs:', nowTs.toDate().toISOString());
 
+    // DEBUG: test raw group query
+    const sanitySnap = await db.collectionGroup('scheduledEmails').limit(1).get();
+    console.log('[CRON] sanity groupQuery size:', sanitySnap.size);
+
+    // Real query
     const scheduledEmailsQuery = db
       .collectionGroup('scheduledEmails')
       .where('sendAt', '<=', nowTs);
 
+    console.log('[CRON] executing scheduledEmailsQuery...');
     const querySnapshot = await scheduledEmailsQuery.get();
+    console.log('[CRON] matched docs:', querySnapshot.size);
 
     if (querySnapshot.empty) {
       return res.status(200).json({ message: 'No emails to send.' });
@@ -32,22 +40,27 @@ export default async function handler(req, res) {
 
     for (const scheduledDoc of querySnapshot.docs) {
       const emailData = scheduledDoc.data();
+      console.log('[CRON] processing', scheduledDoc.ref.path, emailData);
 
       if (!emailData.to || !emailData.subject || !emailData.html || !emailData.userId) {
-        console.warn(`Skipping scheduled email ${scheduledDoc.ref.path}: missing required fields.`);
+        console.warn(`[CRON] Skipping malformed doc: ${scheduledDoc.ref.path}`);
         batch.delete(scheduledDoc.ref);
         continue;
       }
 
-      const mailOptions = {
-        from: `"${emailData.fromName || 'Outreach'}" <${GMAIL_EMAIL}>`,
-        to: emailData.to,
-        subject: emailData.subject,
-        html: emailData.html,
-        attachments: emailData.attachments || [],
-      };
-
-      await transporter.sendMail(mailOptions);
+      try {
+        await transporter.sendMail({
+          from: `"${emailData.fromName || 'Outreach'}" <${GMAIL_EMAIL}>`,
+          to: emailData.to,
+          subject: emailData.subject,
+          html: emailData.html,
+          attachments: emailData.attachments || [],
+        });
+      } catch (mailErr) {
+        console.error(`[CRON] Email send failed for ${scheduledDoc.ref.path}:`, mailErr);
+        // Consider marking status rather than deleting
+        continue;
+      }
 
       const userHistoryRef = db
         .collection('artifacts')
@@ -58,7 +71,6 @@ export default async function handler(req, res) {
         .doc();
 
       const { status, ...historyData } = emailData;
-
       batch.set(userHistoryRef, {
         ...historyData,
         status: 'Initial Outreach (Scheduled)',
@@ -66,7 +78,6 @@ export default async function handler(req, res) {
       });
 
       batch.delete(scheduledDoc.ref);
-
       emailsSent++;
     }
 
@@ -77,6 +88,10 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Cron job error:', error);
-    return res.status(500).json({ error: 'An error occurred during the cron job.' });
+    return res.status(500).json({
+      error: 'An error occurred during the cron job.',
+      details: error.message,
+      code: error.code,
+    });
   }
 }
