@@ -64,7 +64,7 @@ export function getPersonalizedEmail(template, contact, profile) {
     .replace(/\[Your Website URL\]/gi, profile.website || '')
     .replace(/\[Your Skills\]/gi, skills)
     .replace(/\[Your Experience\]/gi, expText)
-    .replace(/\[Your Achievements\]/gi, achievementsList.slice(0, -2) || 'a key achievement.');
+    .replace(/\[Your Achievements\]/gi, achievementsList?.slice(0, -2) || 'a key achievement.');
 
   const socialLinks = [
     profile.linkedin && `<a href="${profile.linkedin}" style="text-decoration:none;"><img src="https://img.icons8.com/color/24/linkedin.png" alt="LinkedIn"></a>`,
