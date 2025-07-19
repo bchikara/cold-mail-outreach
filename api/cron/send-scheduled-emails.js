@@ -18,11 +18,9 @@ export default async function handler(req, res) {
     const nowTs = admin.firestore.Timestamp.now();
     console.log('[CRON] nowTs:', nowTs.toDate().toISOString());
 
-    // DEBUG: test raw group query
     const sanitySnap = await db.collectionGroup('scheduledEmails').limit(1).get();
     console.log('[CRON] sanity groupQuery size:', sanitySnap.size);
 
-    // Real query
     const scheduledEmailsQuery = db
       .collectionGroup('scheduledEmails')
       .where('sendAt', '<=', nowTs)
@@ -61,7 +59,6 @@ export default async function handler(req, res) {
         });
       } catch (mailErr) {
         console.error(`[CRON] Email send failed for ${scheduledDoc.ref.path}:`, mailErr);
-        // Consider marking status rather than deleting
         continue;
       }
 

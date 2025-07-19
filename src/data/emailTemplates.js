@@ -1,4 +1,4 @@
-const footer = `[Footer]`; // leave placeholder
+const footer = `[Footer]`;
 
 export const emailTemplates = [
   {
@@ -9,7 +9,7 @@ export const emailTemplates = [
       <div style="font-family:Arial,sans-serif;color:#333;font-size:14px;line-height:1.6;">
         <p>Hi [Name],</p>
         <p>I hope you're doing well.</p>
-        <p>I'm reaching out to express my strong interest in a software engineering role at <strong>[Company Name]</strong>. With over [Your Experience] of hands-on work across leading technologies like [Your Skills], I've contributed to building scalable applications and impactful data visualizations.</p>
+        <p>I'm reaching out to express my strong interest in a software engineering role at <strong>[Company Name]</strong>. With over <strong>[Your Experience] of relevant work experience at companies like Deloitte,</strong> across leading technologies like <strong>[Your Skills]</strong>, I've contributed to building scalable applications and impactful data visualizations.</p>
         <p>During my tenure, a key achievement was [Your Achievements]. I am currently pursuing my Master’s in Computer Science at Syracuse University, further deepening my technical skills.</p>
         <p>I've attached my resume for your consideration. I'd love the opportunity to explore how I can bring value to the engineering teams at [Company Name]. Please let me know if any roles align with my profile.</p>
         <p>Thank you for your time and consideration.</p>

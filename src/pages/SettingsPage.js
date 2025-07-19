@@ -22,7 +22,7 @@ export default function SettingsPage() {
   const resumeInputRef = useRef(null);
 
   useEffect(() => {
-    const achievements = storedProfile?.achievements && Array.isArray(storedProfile.achievements) && storedProfile.achievements.length > 0 ? storedProfile.achievements : [''];
+    const achievements = storedProfile?.achievements && Array.isArray(storedProfile.achievements) && storedProfile.achievements?.length > 0 ? storedProfile.achievements : [''];
     const initial = { ...storedProfile, achievements } || { name: '', email: '', phone: '', profession: '', skills: '', website: '', experience: '', linkedin: '', github: '', twitter: '', photoURL: '', achievements: [''] };
     setProfile(initial);
     setInitialProfile(initial);
@@ -65,7 +65,7 @@ export default function SettingsPage() {
   };
 
   const removeAchievementField = (index) => {
-    if (profile.achievements.length <= 1) {
+    if (profile.achievements?.length <= 1) {
         setProfile({ ...profile, achievements: [''] });
         return;
     }
@@ -186,7 +186,7 @@ export default function SettingsPage() {
                   onChange={(e) => handleAchievementChange(index, e.target.value)}
                   className="w-full bg-gray-700 p-2 border border-gray-600 rounded-md"
                 />
-                <button onClick={() => removeAchievementField(index)} disabled={profile.achievements.length <= 1 && achievement === ''} className="p-2 text-red-400 hover:text-red-500 disabled:text-gray-600 disabled:cursor-not-allowed">
+                <button onClick={() => removeAchievementField(index)} disabled={profile.achievements?.length <= 1 && achievement === ''} className="p-2 text-red-400 hover:text-red-500 disabled:text-gray-600 disabled:cursor-not-allowed">
                   <Minus size={18}/>
                 </button>
               </div>

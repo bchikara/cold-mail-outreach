@@ -29,7 +29,6 @@ export default function AddManualRecipientModal() {
       onAdd([{ name, email, company }]);
     }
 
-    // Clear fields for next entry
     nameRef.current.value = '';
     emailRef.current.value = '';
     companyRef.current.value = '';

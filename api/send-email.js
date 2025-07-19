@@ -1,17 +1,8 @@
 import { formidable } from 'formidable';
 import fs from 'fs';
+import path from 'path';
 import nodemailer from 'nodemailer';
 import cors from 'cors';
-
-/**
- * Email sending API handler
- * ---------------------------------
- * Updates:
- * • Dynamic resume attachment filename: "<fromName> Resume.pdf".
- * • Use uploaded file's mimetype when present (fallback to application/pdf).
- * • Defensive null checks & simple error messaging.
- * • CORS pre-flight pass-through handled.
- */
 
 const corsHandler = cors({ origin: true });
 
@@ -26,43 +17,31 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Disable Next.js default body parsing so formidable can read the multipart form.
 export const config = {
-  api: {
-    bodyParser: false,
-  },
+  api: { bodyParser: false },
 };
 
-/** Parse multipart/form-data with formidable */
-const parseForm = (req) => {
+function parseForm(req) {
   return new Promise((resolve, reject) => {
-    const form = formidable({});
+    const form = formidable({ multiples: false, maxFileSize: 20 * 1024 * 1024 });
     form.parse(req, (err, fields, files) => {
       if (err) return reject(err);
       resolve({ fields, files });
     });
   });
-};
-
-/** Sanitize a string for safe use in filenames */
-function sanitizeForFilename(str = '') {
-  // Remove characters illegal on Windows & mail gateways; collapse whitespace.
-  return str.replace(/[<>:"/\\|?*]+/g, '').replace(/\s+/g, ' ').trim();
 }
 
 export default async function handler(req, res) {
-  // Run CORS middleware (supports preflight in some deploy envs)
-  await new Promise((resolve, reject) => {
-    corsHandler(req, res, (result) => {
-      if (result instanceof Error) return reject(result);
-      return resolve(result);
+  try {
+    await new Promise((resolve, reject) => {
+      corsHandler(req, res, (result) => {
+        if (result instanceof Error) return reject(result);
+        return resolve(result);
+      });
     });
-  });
-
-  // Explicitly allow OPTIONS preflight
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+  } catch (err) {
+    console.error('CORS Error:', err);
+    return res.status(500).json({ error: 'CORS failure', details: err.message });
   }
 
   if (req.method !== 'POST') {
@@ -72,15 +51,25 @@ export default async function handler(req, res) {
   try {
     const { fields, files } = await parseForm(req);
 
-    // formidable returns arrays of values
-    const to = fields.to?.[0];
-    const subject = fields.subject?.[0];
-    const html = fields.html?.[0];
-    const fromName = fields.fromName?.[0];
-    const resumeFile = files.resume?.[0];
+    const to = Array.isArray(fields.to) ? fields.to[0] : fields.to;
+    const subject = Array.isArray(fields.subject) ? fields.subject[0] : fields.subject;
+    const html = Array.isArray(fields.html) ? fields.html[0] : fields.html;
+    const fromName = Array.isArray(fields.fromName) ? fields.fromName[0] : fields.fromName;
+
+    const resumeFile = files?.resume
+      ? Array.isArray(files.resume)
+        ? files.resume[0]
+        : files.resume
+      : null;
 
     if (!to || !subject || !html || !fromName) {
       return res.status(400).json({ error: 'Missing required text fields.' });
+    }
+
+    let resumeFilename = `${fromName} Resume.pdf`;
+    if (resumeFile?.originalFilename) {
+      const ext = path.extname(resumeFile.originalFilename) || '.pdf';
+      resumeFilename = `${fromName} Resume${ext}`;
     }
 
     const mailOptions = {
@@ -91,20 +80,13 @@ export default async function handler(req, res) {
       attachments: [],
     };
 
-    if (resumeFile) {
-      try {
-        const fileContent = fs.readFileSync(resumeFile.filepath);
-        const safeFrom = sanitizeForFilename(fromName || 'User');
-        const filename = `${safeFrom} Resume.pdf`; // user-requested naming convention
-        mailOptions.attachments.push({
-          filename,
-          content: fileContent,
-          contentType: resumeFile.mimetype || 'application/pdf',
-        });
-      } catch (readErr) {
-        console.error('Failed to read uploaded resume file:', readErr);
-        return res.status(500).json({ error: 'Resume file read error.' });
-      }
+    if (resumeFile?.filepath) {
+      const fileContent = fs.readFileSync(resumeFile.filepath);
+      mailOptions.attachments.push({
+        filename: resumeFilename,
+        content: fileContent,
+        contentType: resumeFile.mimetype || 'application/pdf',
+      });
     }
 
     await transporter.sendMail(mailOptions);

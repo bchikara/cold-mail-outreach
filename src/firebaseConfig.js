@@ -20,7 +20,6 @@ const functions = getFunctions(app);
 const storage = getStorage(app);
 const appId = 'cold-outreach-dashboard-pro';
 
-// Create a callable function reference
 const sendEmailCallable = httpsCallable(functions, 'sendEmail');
 
 export { db, auth, appId, storage, sendEmailCallable };
