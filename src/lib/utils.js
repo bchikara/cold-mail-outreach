@@ -1,7 +1,6 @@
 import { FOOTER_REGEX } from './geminiUtils'; 
 
 export const footerTemplate = `
-  <br><br>
   <table id="email-signature" cellpadding="0" cellspacing="0" border="0"
     style="width:100%;max-width:450px;border-top:1px solid #dddddd;padding-top:15px;margin-top:20px;">
     <tr>
@@ -51,6 +50,9 @@ export function getPersonalizedEmail(template, contact, profile) {
     if (!subject.includes(suffix)) subject += suffix;
   }
 
+  const achievementsList =
+    profile.achievements?.map((ach) => `${ach}, `).join('\n')
+
   let body = (template.body || '')
     .replace(/\[Name\]/gi, firstName)
     .replace(/\[Company Name\]/gi, company)
@@ -62,7 +64,7 @@ export function getPersonalizedEmail(template, contact, profile) {
     .replace(/\[Your Website URL\]/gi, profile.website || '')
     .replace(/\[Your Skills\]/gi, skills)
     .replace(/\[Your Experience\]/gi, expText)
-    .replace(/\[Your Achievements\]/gi, profile.achievements?.[0] || 'a key achievement');
+    .replace(/\[Your Achievements\]/gi, achievementsList.slice(0, -2) || 'a key achievement.');
 
   const socialLinks = [
     profile.linkedin && `<a href="${profile.linkedin}" style="text-decoration:none;"><img src="https://img.icons8.com/color/24/linkedin.png" alt="LinkedIn"></a>`,
@@ -80,6 +82,12 @@ export function getPersonalizedEmail(template, contact, profile) {
     .replace('[Social Links]', socialLinks);
 
   body = body.replace(FOOTER_REGEX, '');
+
+  body = body
+  .replace(/(<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>)+$/gi, '')  
+  .replace(/(<br\s*\/?>)+$/gi, '')                       
+  .trim();
+
 
   if (body.includes('[Footer]')) {
     body = body.replace('[Footer]', personalizedFooter);

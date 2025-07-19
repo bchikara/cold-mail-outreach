@@ -31,6 +31,11 @@ function parseForm(req) {
   });
 }
 
+const wrapEmailBody = (body) => {
+  return `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">${body}</div>`;
+};
+
+
 export default async function handler(req, res) {
   try {
     await new Promise((resolve, reject) => {
@@ -76,7 +81,7 @@ export default async function handler(req, res) {
       from: `"${fromName}" <${GMAIL_EMAIL}>`,
       to,
       subject,
-      html,
+      html: wrapEmailBody(html),
       attachments: [],
     };
 
