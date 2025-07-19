@@ -86,7 +86,7 @@ export default function SendMailPage() {
                 <table className="w-full text-left">
                     <thead className="bg-gray-700">
                         <tr>
-                            <th className="p-4">Select</th>
+                            <th className="p-4"><input type="checkbox" onChange={handleSelectAllOnPage} className="form-checkbox"/></th>
                             <th className="p-4 font-semibold text-white">Name</th>
                             <th className="p-4 font-semibold text-white">Email</th>
                             <th className="p-4 font-semibold text-white">Company</th>

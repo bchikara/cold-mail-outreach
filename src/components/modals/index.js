@@ -5,6 +5,7 @@ import SelectTemplateModal from './SelectTemplateModal';
 import ImportContactsModal from './ImportContactsModal';
 import AddManualRecipientModal from './AddManualRecipientModal';
 import UploadCsvModal from './UploadCsvModal';
+import ImageCropModal from './ImageCropModal';
 
 export default function Modals() {
   const { modal } = useAppStore();
@@ -29,6 +30,9 @@ export default function Modals() {
     case 'uploadCsvForCampaign':
       return <UploadCsvModal />;
       
+    case 'cropImage':
+      return <ImageCropModal />;
+
     default:
       return null;
   }

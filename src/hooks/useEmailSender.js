@@ -1,4 +1,4 @@
-import { collection, addDoc, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, writeBatch, doc, updateDoc } from 'firebase/firestore';
 import { useAppStore } from '../stores/appStore';
 import { useAuthStore } from '../stores/authStore';
 import { useDataStore } from '../stores/dataStore';
@@ -14,32 +14,26 @@ export function useEmailSender() {
     isSending,
     setSending, 
     notifySuccess, 
-    notifyError,
-    dismissToast,
-    notifyLoading 
+    notifyError 
   } = useAppStore();
   const { userId } = useAuthStore();
   const { contacts: allContacts, profile, resumeFile } = useDataStore();
 
   const initiateSendFlow = async (recipients, options = {}) => {
     if (recipients.length === 0 || isSaving) return;
-
     if (!profile || !profile.name) {
       notifyError("Please add your name in Settings before sending emails.");
       return;
     }
-
     if (!resumeFile) {
       notifyError("Please upload your resume in Settings before sending emails.");
       return;
     }
 
     setSaving(true);
-
     try {
       const existingEmails = new Set(allContacts.map(c => c.email));
       const newContactsToSave = recipients.filter(r => !existingEmails.has(r.email));
-
       if (newContactsToSave.length > 0) {
         const batch = writeBatch(db);
         newContactsToSave.forEach(contact => {
@@ -52,52 +46,20 @@ export function useEmailSender() {
     } catch (error) {
       console.error("Error saving new contacts:", error);
       notifyError("Could not save new contacts.");
+    } finally {
       setSaving(false);
-      return;
     }
-    
-    setSaving(false);
 
     openModal('selectTemplate', {
       recipients,
       defaultTemplate: options.defaultTemplate,
-      onSelect: (template) => { 
-        processEmails(recipients, template, options.isFollowUp);
-      },
-      onSchedule: (template, sendAt) => { 
-        scheduleEmails(recipients, template, sendAt, options.isFollowUp);
+      onSelect: (template, finalSubject, finalBody) => {
+        sendEmails(recipients, template, finalSubject, finalBody, options.isFollowUp);
       }
     });
   };
 
-  const scheduleEmails = async (contactsToSchedule, template, sendAt, isFollowUp = false) => {
-    setSending(true);
-    closeModal();
-    const toastId = notifyLoading("Scheduling emails...");
-
-    const emails = contactsToSchedule.map(contact => {
-        const { subject, body } = getPersonalizedEmail(template, contact, profile);
-        return { to: contact.email, subject, html: body, fromName: profile.name, sendAt };
-    });
-
-    try {
-        await fetch('/api/schedule-emails', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emails, userId }),
-        });
-        dismissToast(toastId);
-        notifySuccess(`${emails.length} emails have been scheduled.`);
-    } catch (error) {
-        dismissToast(toastId);
-        notifyError("Failed to schedule emails.");
-        console.error("Scheduling error:", error);
-    } finally {
-        setSending(false);
-    }
-  };
-
-  const processEmails = async (contactsToSend, template, isFollowUp = false) => {
+  const sendEmails = async (contactsToSend, template, finalSubject, finalBody, isFollowUp = false, isTest = false) => {
     if (contactsToSend.length === 0) return;
     setSending(true);
 
@@ -115,7 +77,8 @@ export function useEmailSender() {
     }
 
     const emailPromises = contactsToSend.map(async (contact) => {
-      const { subject, body } = getPersonalizedEmail(template, contact, profile);
+      const editedTemplate = { subject: finalSubject, body: finalBody };
+      const { subject, body } = getPersonalizedEmail(editedTemplate, contact, profile);
 
       const formData = new FormData();
       formData.append('to', contact.email);
@@ -124,7 +87,8 @@ export function useEmailSender() {
       formData.append('fromName', profile.name || "A Professional Contact");
       
       if (resumeBlob) {
-          formData.append('resume', resumeBlob, 'resume.pdf');
+          const resumeFilename = `${(profile.name || 'User').replace(/ /g, '_')}_Resume.pdf`;
+          formData.append('resume', resumeBlob, resumeFilename);
       }
 
       const response = await fetch('/api/send-email', {
@@ -136,7 +100,6 @@ export function useEmailSender() {
           const errorData = await response.json();
           throw new Error(errorData.details || `Server responded with ${response.status}`);
       }
-      
       return contact;
     });
 
@@ -153,25 +116,44 @@ export function useEmailSender() {
       }
     });
 
-    if (successfulSends.length > 0) {
+    if (successfulSends.length > 0 && !isTest) {
       const batch = writeBatch(db);
       successfulSends.forEach(contact => {
-        const historyRef = doc(collection(db, `artifacts/${appId}/users/${userId}/history`));
-        batch.set(historyRef, {
-          ...contact,
-          template: template.name,
-          sentAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-          status: isFollowUp ? 'Follow-up Sent' : 'Initial Outreach',
-          followUpFor: isFollowUp ? (contact.id || null) : null,
-        });
+        if (isFollowUp && contact.id) {
+            const historyRef = doc(db, `artifacts/${appId}/users/${userId}/history`, contact.id);
+            batch.update(historyRef, { status: 'Follow-up Sent', sentAt: new Date() });
+        } else {
+            const historyRef = doc(collection(db, `artifacts/${appId}/users/${userId}/history`));
+            const { id, ...contactData } = contact;
+            const historyData = {
+                ...contactData,
+                template: template.name,
+                sentAt: new Date(),
+                createdAt: new Date(),
+                status: 'Initial Outreach'
+            };
+            batch.set(historyRef, historyData);
+        }
       });
       await batch.commit();
     }
     
     setSending(false);
-    closeModal();
-    notifySuccess(`${successfulSends.length} of ${contactsToSend.length} emails were processed.`);
+    if (!isTest) {
+      closeModal();
+      notifySuccess(`Email campaign has been processed!`);
+    } else {
+      notifySuccess(`Test email sent to ${profile.email}`);
+    }
+  };
+  
+  const sendTestEmail = async (template, subject, body) => {
+    if (!profile.email) {
+      notifyError("Your primary email is not available in your profile to send a test.");
+      return;
+    }
+    const testRecipient = { name: "Test User (You)", email: profile.email, company: "Test Company Inc." };
+    await sendEmails([testRecipient], template, subject, body, false, true);
   };
 
   return { initiateSendFlow, isSending, isSaving };
