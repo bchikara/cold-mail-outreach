@@ -2,17 +2,54 @@ const footer = `[Footer]`;
 
 export const emailTemplates = [
   {
-    id: 'comprehensive-referral',
-    name: 'Comprehensive Referral Request',
-    subject: 'Referral for Software Engineering role at [Company Name]',
+    id: 'builder-engineering-outreach',
+    name: 'Engineering Role Outreach',
+    subject: 'Exploring Software Engineering opportunities at [Company Name]',
     body: `
+    <style>
+  a {
+    color: #1a0dab;
+    text-decoration: none;
+  }
+</style>
       <div style="font-family:Arial,sans-serif;color:#333;font-size:16px;line-height:1.5;">
         <p>Hi [Name],</p>
-        <p>I hope you're doing well.</p>
-        <p>I'm reaching out to express my strong interest in a software engineering role at <strong>[Company Name]</strong>. With over <strong>[Your Experience] of relevant work experience at companies like Deloitte,</strong> across leading technologies like <strong>[Your Skills]</strong>, I've contributed to building scalable applications and impactful data visualizations.</p>
-        <p>During my tenure, a key achievement was <strong>[Your Achievements]</strong>. I am currently pursuing my Master’s in Computer Science at Syracuse University, further deepening my technical skills.</p>
-        <p>I've attached my resume for your consideration. I'd love the opportunity to explore how I can bring value to the engineering teams at [Company Name]. Please let me know if any roles align with my profile.</p>
-        <p>Thank you for your time and consideration.</p>
+        <p>
+          I hope you are doing well. I’ve been following what <strong>[Company Name]</strong> is building, and I’m really impressed by the products and engineering challenges you're tackling. 
+          I enjoy building end-to-end solutions and want to contribute to creating and scaling impactful systems.
+        </p>
+        <p>
+          With [Your Experience] of relevant experience building full-stack applications at companies like 
+          <strong>Deloitte, ToTheNew, Smart Joules</strong>, where I’ve delivered systems serving thousands of users. My expertise spans across the stack, starting with 
+          <strong>frontend development (React, Next.js, Angular, TypeScript)</strong>, then moving to 
+          <strong>backend systems (Node.js, Python, GraphQL, GRPC)</strong>, and also includes managing 
+          infrastructure (AWS, GCP).
+        </p>
+        <p>
+          My technical skill set also includes <strong>WebRTC, RTMP, UDP, WebSockets, REST APIs, Docker, CI/CD pipelines, MongoDB, SQL, AI integration (OpenAI API), and building PWAs</strong>.
+        </p>
+        <p>
+          Some of my key achievements include developing an open-source <strong>NPM module for multi-select autocomplete</strong>, 
+          winning <strong>Hackathon 1.0 (Helping Hands)</strong>, and earning <strong>Deloitte’s Applause Award three times</strong> for leadership and solving complex dashboard challenges.
+        </p>
+        <p>
+          Along with my professional experience, I’ve built several projects that demonstrate my ability to take ideas from concept to production:</p>
+          <ul>
+            <li><strong><a href="https://www.youtube.com/watch?v=yECqnPjo67A" target="_blank">ProCode</a></strong> – An AI companion that simulates real coding practice by listening, guiding, and assessing your submissions with an intelligent avatar.</li>
+            <li><strong><a href="https://thelacarte.com/" target="_blank">LaCarte</a></strong> – A smart QR-based dining experience enabling menu browsing, ordering, and payments without waiters.</li>
+            <li><strong><a href="https://cold-mail-outreach.vercel.app/" target="_blank">Cold Mail Outreach</a></strong> – A full-stack web app with dynamic email templates and outreach tracking in a modern Gemini-inspired dark UI.</li>
+            <li><strong><a href="https://github.com/bchikara/job_automater?tab=readme-ov-file#-automated-job-application-assistant" target="_blank">Job Automator</a></strong> – Automates repetitive job applications with AI-assisted form filling and tracking.</li>
+            <li><strong><a href="https://github.com/bchikara/SpaceScrible?tab=readme-ov-file#-spacescrible" target="_blank">Space Scribble</a></strong> – A motion tracking app using CNN models to convert sensor-based gestures into alphabet predictions.</li>
+          </ul>
+        <p>More projects can be found here: <a href="https://builtbychikara.dev/projects" target="_blank">builtbychikara.dev/projects</a>.
+        </p>
+        <p>
+          I would love to learn more about any software engineering opportunities at <strong>[Company Name]</strong>, or if you think someone on your team would be a better contact, I’d appreciate your referral or guidance. 
+          I’ve attached my resume and would be happy to provide any additional information if required.
+        </p>
+        <p>
+          Looking forward to hearing from you!
+        </p>
         ${footer}
       </div>
     `
